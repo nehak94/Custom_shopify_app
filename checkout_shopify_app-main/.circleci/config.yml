@@ -1,0 +1,36 @@
+version: 2.1
+orbs:
+  slack: circleci/slack@4.4.4
+  gcp-gcr: circleci/gcp-gcr@0.13.0
+  gcp-cli: circleci/gcp-cli@2.2.0
+  gcp-cloud-run: circleci/gcp-cloud-run@1.0.2
+jobs:
+  build-and-release-revision:
+    docker:
+      - image: "cimg/base:stable"
+    working_directory: ~/code
+    steps:
+      - checkout
+      - gcp-cloud-run/init
+      - gcp-cloud-run/build:
+          tag: "eu.gcr.io/${GOOGLE_PROJECT_ID}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1}"
+      - gcp-cloud-run/deploy:
+          image: "eu.gcr.io/${GOOGLE_PROJECT_ID}/${CIRCLE_PROJECT_REPONAME}:${CIRCLE_SHA1}"
+          platform: managed
+          region: europe-north1
+          service-name: ${CIRCLE_PROJECT_REPONAME}
+          unauthenticated: true
+      - slack/notify:
+          event: fail
+          template: basic_fail_1
+workflows:
+  build-and-release-application:
+    jobs:
+      - build-and-release-revision:
+          context:
+            - Rahmqvist
+            - Slack
+          filters:
+            branches:
+              only:
+                - main

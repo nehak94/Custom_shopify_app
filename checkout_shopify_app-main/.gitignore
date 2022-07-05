@@ -1,0 +1,12 @@
+# IntelliJ
+*.ipr
+*.iws
+.gradle
+.idea
+.bsp/
+.env
+
+# Mac stuff
+.DS_Store
+.ensime
+.ensime_cache
